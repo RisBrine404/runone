@@ -1,25 +1,150 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Code Editor</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <title>Web Code Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/eclipse.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/hint/show-hint.min.css">
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; font-family: Arial, sans-serif; }
+        .editor-container { display: flex; width: 100%; height: 50vh; }
+        .editor-wrapper { width: 33%; padding: 10px; display: flex; flex-direction: column; }
+        .editor-title { font-weight: bold; text-align: center; margin-bottom: 5px; }
+        iframe { width: 100%; height: 50vh; border: 1px solid #ccc; }
+        .CodeMirror { width: 100% !important; height: 200px !important; }
+        .theme-toggle { margin: 10px; padding: 5px 10px; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <h1>Online Code Editor</h1>
+    <h1>Web Code Editor</h1>
+    <button class="theme-toggle">🌙 Dark Mode</button>
     <div class="editor-container">
-        <textarea id="html-editor"></textarea>
-        <textarea id="css-editor"></textarea>
-        <textarea id="js-editor"></textarea>
+        <div class="editor-wrapper">
+            <div class="editor-title">HTML</div>
+            <textarea id="html" placeholder="Write HTML here..."></textarea>
+        </div>
+        <div class="editor-wrapper">
+            <div class="editor-title">CSS</div>
+            <textarea id="css" placeholder="Write CSS here..."></textarea>
+        </div>
+        <div class="editor-wrapper">
+            <div class="editor-title">Programming Language</div>
+            <select id="language">
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="clike">C / C++</option>
+                <option value="java">Java</option>
+                <option value="php">PHP</option>
+                <option value="ruby">Ruby</option>
+            </select>
+            <textarea id="code" placeholder="Write your code here..."></textarea>
+        </div>
     </div>
-    <button onclick="runCode()">Run Code</button>
     <iframe id="output"></iframe>
-    <script src="editor.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/php/php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/ruby/ruby.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/edit/closetag.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/hint/show-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/hint/html-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/hint/javascript-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/hint/css-hint.min.js"></script>
+    
+    <script>
+        function createEditor(id, mode) {
+            return CodeMirror.fromTextArea(document.getElementById(id), {
+                mode: mode,
+                lineNumbers: true,
+                theme: "dracula",
+                lineWrapping: false,
+                autoCloseBrackets: true,
+                autoCloseTags: mode === "htmlmixed",
+                extraKeys: {
+                    "Ctrl-S": updateOutput,
+                    "Cmd-S": updateOutput,
+                    "Tab": cm => cm.execCommand("insertSoftTab"),
+                    "Ctrl-Space": "autocomplete"
+                }
+            });
+        }
+        
+        const htmlEditor = createEditor("html", "htmlmixed");
+        const cssEditor = createEditor("css", "css");
+        let codeEditor = createEditor("code", "javascript");
+
+        function updateOutput() {
+            const html = htmlEditor.getValue();
+            const css = `<style>${cssEditor.getValue()}</style>`;
+            const js = `<script>${codeEditor.getValue()}<\/script>`;
+            
+            const iframeDoc = document.getElementById('output').contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(html + css + js);
+            iframeDoc.close();
+        }
+
+        htmlEditor.on("change", updateOutput);
+        cssEditor.on("change", updateOutput);
+        codeEditor.on("change", updateOutput);
+
+        document.getElementById("language").addEventListener("change", function() {
+            const mode = this.value;
+            const value = codeEditor.getValue();
+            codeEditor.toTextArea();
+            codeEditor = createEditor("code", mode);
+            codeEditor.setValue(value);
+            codeEditor.on("change", updateOutput);
+        });
+
+        function enableAutocomplete(editor) {
+            editor.on("inputRead", function(cm) {
+                if (!cm.state.completionActive) {
+                    CodeMirror.commands.autocomplete(cm, null, { completeSingle: false });
+                }
+            });
+        }
+
+        enableAutocomplete(htmlEditor);
+        enableAutocomplete(cssEditor);
+        enableAutocomplete(codeEditor);
+
+        htmlEditor.on("keydown", function(cm, event) {
+            if (event.key === "Enter" && cm.getValue().trim() === "!") {
+                event.preventDefault();
+                cm.setValue(`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Hello, World!</h1>
+</body>
+</html>`);
+                cm.setCursor({ line: 9, ch: 4 });
+            }
+        });
+
+        const toggleBtn = document.querySelector(".theme-toggle");
+        toggleBtn.addEventListener("click", function() {
+            const theme = htmlEditor.getOption("theme") === "dracula" ? "eclipse" : "dracula";
+            htmlEditor.setOption("theme", theme);
+            cssEditor.setOption("theme", theme);
+            codeEditor.setOption("theme", theme);
+            toggleBtn.textContent = theme === "dracula" ? "🌙 Dark Mode" : "☀️ Light Mode";
+        });
+    </script>
 </body>
 </html>
